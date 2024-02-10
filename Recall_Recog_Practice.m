@@ -895,6 +895,9 @@ function instruct(window, mouseCondition)
         keyCode(spacebar);
     end
 
+    oldResolution = Screen('Resolution', window.onScreen);
+    disp(oldResolution);
+
 end
 
 function breakBetween(window)
