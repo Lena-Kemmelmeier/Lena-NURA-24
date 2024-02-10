@@ -2,7 +2,7 @@
 % Based off the code by A and B (add these), task design: Zhang and Luck 2008
 
 clear;
-root = '/Users/lena/Desktop/NURA24/'; % change this later
+root = '/Users/mblab/Desktop/Lena-NURA-24/';
 addpath(root); % just to be sure...
 addpath(root, char(root + "/Raw"), char(root + "/Data"), char(root + "/Analyzed"))
 
@@ -197,6 +197,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
             % disp('Test = this is the intermixed condition!') % check
  
             for t = 1:nTrialsTotal % start trial loop
+              theCloser;
         
               % get the type for this trial (recall = 1, recog match = 2, recog mismatch = 3)
               trialType = intermixedTrialList(t, 1);
@@ -226,11 +227,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
                     
                     % The first number is the number that will be tested (generated earlier)
-                    random_numbers = intermix_stim.color(recallCtr);
-                    % disp(intermix_stim.color(recallCtr))
+                    random_numbers = block_stim.color(recallCtr);
+                    % disp(block_stim.color(recallCtr))
                     
                     % Generate the remaining random numbers
                     for i = 2:prefs.nItems
@@ -239,10 +240,12 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
@@ -276,11 +279,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
-                    
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
+
                     % Generate the first random number
                     random_numbers = randi([min_value, max_value]);
-                    
+
                     % Generate the remaining random numbers
                     for i = 2:prefs.nItems
                         while true
@@ -288,13 +291,16 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
+
             
                     intermix_colorsInDegrees{t} = random_numbers;
             
@@ -351,6 +357,9 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
+
+                  trial_colors = intermix_colorsInDegrees{t};
+                  intermix_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
@@ -360,6 +369,9 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
+
+                  trial_colors = intermix_colorsInDegrees{t};
+                  intermix_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end % end of trial condition
 
@@ -407,7 +419,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
                     
                     % The first number is the number that will be tested (generated earlier)
                     random_numbers = block_stim.color(recallCtr);
@@ -420,10 +432,12 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
@@ -459,11 +473,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
-                    
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
+
                     % Generate the first random number
                     random_numbers = randi([min_value, max_value]);
-                    
+
                     % Generate the remaining random numbers
                     for i = 2:prefs.nItems
                         while true
@@ -471,13 +485,16 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
+
             
                     block_colorsInDegrees{t} = random_numbers;
             
@@ -534,6 +551,9 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
+
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
@@ -543,6 +563,9 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
+
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end
 
@@ -627,7 +650,41 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
     stdError_recallIntermixed = std(abs(recallIntermixData(:,4)));
     stdError_recallBlocked = std(abs(recallBlockData(:,4)));
 
-    save(ana_name,'corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
+    % store this info in final data
+    final_data(1,1) = "Recog Correct RT (all - block)"; final_data(1,2) = corAll__recogBlockRT;
+    final_data(2,1) = "Recog Acc (match - block)"; final_data(2,2) = match_recogBlockAcc;
+    final_data(3,1) = "Recog Acc (mismatch - block)"; final_data(3,2) = mismatch_recogBlockAcc;
+    final_data(4,1) = "Recog Acc (all - block)"; final_data(4,2) = all_recogBlockAcc;
+
+    final_data(5,1) = "Recog RT (match - block"; final_data(5,2) = match_recogBlockRT;
+    final_data(6,1) = "Recog RT (mismatch - block)"; final_data(6,2) = mismatch_recogBlockRT;
+
+    final_data(7,1) = "Recog RT (all - block)"; final_data(7,2) = all_recogBlockRT; % not sure what this is...
+    final_data(8,1) = "Recog Correct RT (match - block)"; final_data(8,2) = corMatch_recogBlockRT;
+    final_data(9,1) = "Recog Correct RT (mismatch - block)"; final_data(9,2) = corMismatch_recogBlockRT;
+
+    final_data(10,1) = "Recall Error - Average (block)"; final_data(10,2) = aveError_recallBlocked;
+    final_data(11,1) = "Recall Error - Standard Deviation (block)"; final_data(11,2) = stdError_recallBlocked;
+
+    final_data(12,1) = "Recog Correct RT (all - intermixed)"; final_data(12,2) = corAll__recogIntermixRT;
+    final_data(13,1) = "Recog Acc (intermixed - intermixed)"; final_data(13,2) = match_recogIntermixAcc;
+    final_data(14,1) = "Recog Acc (mismatch - intermixed)"; final_data(14,2) = mismatch_recogIntermixAcc;
+    final_data(15,1) = "Recog Acc (all - intermixed)"; final_data(15,2) = all_recogIntermixAcc;
+
+    final_data(16,1) = "Recog RT (match - intermixed"; final_data(16,2) = match_recogIntermixRT;
+    final_data(17,1) = "Recog RT (mismatch - intermixed)"; final_data(17,2) = mismatch_recogIntermixRT;
+
+    final_data(18,1) = "Recog RT (all - intermixed)"; final_data(18,2) = all_recogIntermixRT; % not sure what this is...
+    final_data(19,1) = "Recog Correct RT (match - intermixed)"; final_data(19,2) = corMatch_recogIntermixRT;
+
+    final_data(20,1) = "Recog Correct RT (mismatch - intermixed)"; final_data(20,2) = corMismatch_recogIntermixRT;
+    final_data(21,1) = "Recall Error - Average (intermixed) "; final_data(21,2) = aveError_recallIntermixed;
+    final_data(22,1) = "Recall Error - Standard Deviation (intermixed)"; final_data(22,2) = stdError_recallIntermixed;
+
+
+
+    save(ana_name,'final_data','corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
+    save(output_name)
 
 
   catch
@@ -776,6 +833,11 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
     data.recog(recogCtr, 7) = buttons(1); % left mouse clicked?
     data.recog(recogCtr, 8) = buttons(2); % right mouse clicked?
     data.recog(recogCtr, 9) = itemToTest(t); % was square 1, 2, or 3 probed? (randomized)
+    data.recog(recogCtr, 13) = targetColorInDegrees; % probe color
+
+    if trialType == 3
+        data.recog(recogCtr, 14) = diffColorInDegrees; % if it is a mismatch trial, this is actually the probe color
+    end
 
     % save the data, preferences, stim info
     save(data_name, 'data','prefs','colorsOfTest');
@@ -1026,7 +1088,7 @@ function instruct(window, mouseCondition)
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen, 'WM Task - Color Recall & Recognition', 'center', window.centerY - 200);
+    DrawFormattedText(window.onScreen, 'Color Recall & Recognition', 'center', window.centerY - 200);
     
     DrawFormattedText(window.onScreen, 'At the start of each trial, you will be shown three squares. Remember their colors.', 'center', window.centerY - 100);
     DrawFormattedText(window.onScreen, 'After a delay, you will be shown colored squares again, or a color wheel.', 'center', window.centerY - 50);
@@ -1041,15 +1103,19 @@ function instruct(window, mouseCondition)
 
 
 
-    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the square that was where the lightest square is.', 'center', window.centerY + 100);
+    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 100);
     
     DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 200);
     
     Screen('Flip', window.onScreen); % show the instructions
     
     [~,~, keyCode] = KbCheck(); % wait for spacebar to start
+     % [~,~, keyCode] = KbCheck; % wait for spacebar to start
+
     while ~keyCode(spacebar)
         [~,~,keyCode] = KbCheck();
+        % [~,~,keyCode] = KbCheck;
+
         keyCode(spacebar);
     end
 
@@ -1081,7 +1147,7 @@ function endScreen(window)
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen,'Please let the researcher know you are done.', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Please ring the bell.', 'center',window.centerY);
     
     Screen('Flip', window.onScreen); % show the text
     
@@ -1244,4 +1310,13 @@ function [discMat,faceMat,handMat,recallLoc,probeLoc] = createRims(prefs,xPos,yP
     probeY2 = yPos(probeLoc)+prefs.rimSize/2;
 
     recallLoc = [probeX1 probeY1 probeX2 probeY2];
+end
+
+% closes the screen by pressing 'Pause/Break' key - JP + JS
+function [] = theCloser()
+    [~, ~, keyCode] = KbCheck;
+    if keyCode(KbName('Pause'))
+        Screen('CloseAll');
+        stop = here + please;
+    end
 end

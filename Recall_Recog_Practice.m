@@ -2,7 +2,9 @@
 % Based off the code by A and B (add these), task design: Zhang and Luck 2008
 
 clear;
-root = '/Users/lena/Desktop/NURA24/'; % change this later
+KbName('UnifyKeyNames');
+
+root = '/Users/mblab/Desktop/Lena-NURA-24/';
 addpath(root); % just to be sure...
 addpath(root, char(root + "/Raw"), char(root + "/Data"), char(root + "/Analyzed"))
 
@@ -17,7 +19,7 @@ answer = inputdlg(prompt,dlg_title,num_lines); % presents box to enter data into
 
 if isempty(answer{1,1} | answer{2,1})
     error(noResponseGUI); % throw an error
-elseif ((answer{2,1} ~= '0' && answer{2,1} ~= '1'))
+elseif ((answer{2,1} ~= '0' && answer{2,1} ~= '1')) % fix this! incorrect logical statement
     error(incorrectGUI); % throw an error
 end 
 
@@ -189,7 +191,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
 
 
             for t = 1:nTrialsTotal % start trial loop
-        
+              theCloser;
               % get the type for this trial (recall = 1, recog match = 2, recog mismatch = 3)
               trialType = blockedTrialList(t, 1);
         
@@ -218,7 +220,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
                     
                     % The first number is the number that will be tested (generated earlier)
                     random_numbers = block_stim.color(recallCtr);
@@ -231,10 +233,12 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
@@ -270,11 +274,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    min_distance = 23; % Minimum distance between numbers (22.5 degrees rounded up)
-                    
+                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
+
                     % Generate the first random number
                     random_numbers = randi([min_value, max_value]);
-                    
+
                     % Generate the remaining random numbers
                     for i = 2:prefs.nItems
                         while true
@@ -282,14 +286,17 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            if all(abs(random_numbers - new_number) >= min_distance)
+                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
+                            if min_distance >= 90
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
+
                             end
                         end
                     end
-            
+
+
                     block_colorsInDegrees{t} = random_numbers;
             
                     % Display the array of random numbers
@@ -345,6 +352,9 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
+
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
@@ -354,8 +364,13 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
+                  
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end
+                
+              save(output_name);
 
               if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
 
@@ -417,7 +432,24 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
     aveError_recallBlocked = mean(abs(recallBlockData(:,4)));
     stdError_recallBlocked = std(abs(recallBlockData(:,4)));
 
-    save(ana_name,'corAll__recogBlockRT','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','aveError_recallBlocked','stdError_recallBlocked');
+    % store this info in final data
+    final_data(1,1) = "Recog Correct RT (all - block)"; final_data(1,2) = corAll__recogBlockRT;
+    final_data(2,1) = "Recog Acc (match - block)"; final_data(2,2) = match_recogBlockAcc;
+    final_data(3,1) = "Recog Acc (mismatch - block)"; final_data(3,2) = mismatch_recogBlockAcc;
+    final_data(4,1) = "Recog Acc (all - block)"; final_data(4,2) = all_recogBlockAcc;
+
+    final_data(5,1) = "Recog RT (match - block"; final_data(5,2) = match_recogBlockRT;
+    final_data(6,1) = "Recog RT (mismatch - block)"; final_data(6,2) = mismatch_recogBlockRT;
+
+    final_data(7,1) = "Recog RT (all - block)"; final_data(7,2) = all_recogBlockRT; % not sure what this is...
+    final_data(8,1) = "Recog Correct RT (match - block)"; final_data(8,2) = corMatch_recogBlockRT;
+
+    final_data(9,1) = "Recog Correct RT (mismatch - block)"; final_data(9,2) = corMismatch_recogBlockRT;
+    final_data(10,1) = "Recall Error - Average"; final_data(10,2) = aveError_recallBlocked;
+    final_data(11,1) = "Recall Error - Standard Deviation"; final_data(11,2) = stdError_recallBlocked;
+
+
+    save(ana_name,'final_data','corAll__recogBlockRT','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','aveError_recallBlocked','stdError_recallBlocked');
 
     if((all_recogBlockAcc < 0.5) || aveError_recallBlocked > 90)
         disp('Practice data did not save!')
@@ -425,6 +457,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
         disp('Practice data saved')
     end
 
+    save(output_name)
 
   catch
     postpareEnvironment;
@@ -466,6 +499,9 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
         % each row represents a color in colorsOfTest
         % each column represents a color in colorsToDisplay 
         % ' operator accounts for the difference
+
+        trialColorInDegrees = colorsInDegrees{1,t}; % select the color index/degree for the square that will be tested
+        targetColorInDegrees = trialColorInDegrees(itemToTest(t));
 
         % disp(colorsOfTest);
 
@@ -571,6 +607,11 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
     data.recog(recogCtr, 7) = buttons(1); % left mouse clicked?
     data.recog(recogCtr, 8) = buttons(2); % right mouse clicked?
     data.recog(recogCtr, 9) = itemToTest(t); % was square 1, 2, or 3 probed? (randomized)
+    data.recog(recogCtr, 13) = targetColorInDegrees; % probe color
+
+    if trialType == 3
+        data.recog(recogCtr, 14) = diffColorInDegrees; % if it is a mismatch trial, this is actually the probe color
+    end
 
     % save the data, preferences, stim info
     save(data_name, 'data','prefs','colorsOfTest');
@@ -708,9 +749,11 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
 
     % store the data
     data.recall(recallCtr, 1) = recallCtr; % trial number within condition
-    data.recall(recallCtr, 2) = data.isValidResponse(recallCtr); % was this participant's response valid?
-    data.recall(recallCtr, 3) = data.mouseOnWheel(recallCtr); % did the participant end on the wheel?
+    data.recall(recallCtr, 2) = data.isValidResponse(recallCtr); % was this participant's response valid? 0 or 1
+    data.recall(recallCtr, 3) = data.mouseOnWheel(recallCtr); % did the participant end on the wheel? 0 or 1
     % color offset & RT saved earlier because only accurately calculated if the response is valid
+
+    
 
     % save the data, the stim, and the preferences
     save(data_name, 'data','stim','prefs');
@@ -821,7 +864,7 @@ function instruct(window, mouseCondition)
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen, 'WM Task - Color Recall & Recognition', 'center', window.centerY - 200);
+    DrawFormattedText(window.onScreen, 'PRACTICE - Color Recall & Recognition', 'center', window.centerY - 200);
     
     DrawFormattedText(window.onScreen, 'At the start of each trial, you will be shown three squares. Remember their colors.', 'center', window.centerY - 100);
     DrawFormattedText(window.onScreen, 'After a delay, you will be shown colored squares again, or a color wheel.', 'center', window.centerY - 50);
@@ -836,15 +879,19 @@ function instruct(window, mouseCondition)
 
 
 
-    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the square that was where the lightest square is.', 'center', window.centerY + 100);
+    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 100);
     
     DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 200);
     
     Screen('Flip', window.onScreen); % show the instructions
     
     [~,~, keyCode] = KbCheck(); % wait for spacebar to start
+     % [~,~, keyCode] = KbCheck; % wait for spacebar to start
+
     while ~keyCode(spacebar)
         [~,~,keyCode] = KbCheck();
+        % [~,~,keyCode] = KbCheck;
+
         keyCode(spacebar);
     end
 
@@ -876,7 +923,7 @@ function endScreen(window)
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen,'Please let the researcher know you are done.', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Please ring the bell.', 'center',window.centerY);
     
     Screen('Flip', window.onScreen); % show the text
     
@@ -895,6 +942,16 @@ function [window,rect] = openWindow()
   PsychImaging('PrepareConfiguration');
   PsychImaging('AddTask','General','UseRetinaResolution')
   [window.onScreen, rect] = PsychImaging('OpenWindow', 0,0, []);
+
+  % [window.onScreen, rect] = Screen('OpenWindow', 0,0, []);
+
+  % try
+  %   oldRes = SetResolution(window.onScreen,2560,1440);
+  %   disp('okay!')
+  % catch
+  %     sca;
+  %     disp('not okay!')
+  % end
 
   Screen('BlendFunction', window.onScreen, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
   [window.screenX, window.screenY] = Screen('WindowSize', window.onScreen); % check resolution
@@ -1039,4 +1096,13 @@ function [discMat,faceMat,handMat,recallLoc,probeLoc] = createRims(prefs,xPos,yP
     probeY2 = yPos(probeLoc)+prefs.rimSize/2;
 
     recallLoc = [probeX1 probeY1 probeX2 probeY2];
+end
+
+% closes the screen by pressing 'Pause/Break' key - JP + JS
+function [] = theCloser()
+    [~, ~, keyCode] = KbCheck;
+    if keyCode(KbName('Pause'))
+        Screen('CloseAll');
+        stop = here + please;
+    end
 end
