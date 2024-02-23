@@ -747,7 +747,69 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
     excel_data = final_data'; %flip easier to copy into excel
 
 
-    save(ana_name,'excel_data','final_data','corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
+
+    % Look at performance over number of trials (groupings of 25)
+    performance_time.recallBlockData = block_data.recall;
+    performance_time.recogBlockData = block_data.recog;
+
+    performance_time.recallMixData = intermix_data.recall;
+    performance_time.recogMixData = intermix_data.recog;
+
+    blockNum = 0;
+    startingTrial = 1;
+    for i = 1:4 % for each condition within each block - 100 trials, so 4 'blocks'
+        blockNum = blockNum + 1;
+        
+       % get the data for just these the trials within this block of 25
+       recallBlock = block_data.recall(startingTrial:(startingTrial + 24),:);
+       recogBlock = block_data.recog(startingTrial:(startingTrial + 24),:);
+
+       recallMix = intermix_data.recall(startingTrial:(startingTrial + 24),:);
+       recogMix = intermix_data.recog(startingTrial:(startingTrial + 24),:);
+
+
+       % recog - remove trials with no response
+       recogMix = recogMix(cat(1,recogMix(:,3)) > -1,:);
+       recogBlock = recogBlock(cat(1,recogBlock(:,3)) > -1,:);
+    
+       % recall - remove trials with invalid response
+       recallMix = recallMix(cat(1,recallMix(:,4)) < 500,:);
+       recallBlock = recallBlock(cat(1,recallBlock(:,4)) < 500,:);
+
+       % calculate the average recog (blocked) accuracy for this section
+       recogMixAcc = mean(recogMix(:,3));
+
+       % calculate the average recog (intermix) accuracy for this section
+       recogBlockAcc = mean(recogBlock(:,3));
+        
+       % calculate the median recog (blocked) RT for correct trials for this section
+       corRecogBlockRT = median(recogBlock(recogBlock(:,3)==1,4));
+
+       % calculate the median recog (intermix) RT for correct trials for this section
+       corRecogMixRT = median(recogMix(recogMix(:,3)==1,4));
+
+       % calculate the average recall (blocked) error for this section
+       errorRecallBlock = mean(abs(recallBlock(:,4)));
+
+       % calculate the average recog (intermix) error for this section
+       errorRecallMix= mean(abs(recallMix(:,4)));
+
+
+       % store this data
+       performance_time.blockRecog(blockNum,:) = [blockNum recogBlockAcc corRecogBlockRT];
+       performance_time.mixRecog(blockNum,:) = [blockNum recogMixAcc corRecogMixRT];
+       performance_time.blockRecall(blockNum,:) = [blockNum errorRecallBlock];
+       performance_time.mixRecall(blockNum,:) = [blockNum errorRecallMix];
+
+       if i < 4
+        startingTrial = startingTrial + 25;
+       end
+
+    end
+
+
+    
+    save(ana_name,'performance_time','excel_data','final_data','corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
     save(output_name)
 
 
