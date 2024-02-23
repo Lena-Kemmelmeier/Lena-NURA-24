@@ -188,6 +188,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
     for s = 1:length(conditionSeq) % start condition loop
         currCondition = conditionSeq(s);
 
+        if s == length(conditionSeq)
+            % next condition screen
+            conditionScreen(window);
+        end
+
         % Keep track of which recall/recog trial we are on - reset this at
         % the beginning of both the intermixed and condition block
         recallCtr = 1; 
@@ -195,9 +200,14 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
 
         if currCondition == 1 % start of intermixed condition
             % disp('Test = this is the intermixed condition!') % check
+            blockCtr = 0;
  
             for t = 1:nTrialsTotal % start trial loop
               theCloser;
+
+              if (mod(t-1,trialsPerBlock) == 0)
+                  intermixScreen(window);
+              end
         
               % get the type for this trial (recall = 1, recog match = 2, recog mismatch = 3)
               trialType = intermixedTrialList(t, 1);
@@ -241,7 +251,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -292,7 +302,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -352,44 +362,61 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   while any(buttons)
                     [x,y,buttons] = GetMouse(window.onScreen);
                   end
-        
+
+                  trial_colors = intermix_colorsInDegrees{t};
+                  intermix_data.recall(recallCtr,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
+
                   % increment the recallCtr
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
 
-                  trial_colors = intermix_colorsInDegrees{t};
-                  intermix_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
                   intermix_data = recogProbe(intermix_data, prefs, trialType, t, window, intermix_colorsInDegrees, colorsToDisplay, itemToTest_mix, rects, mouseCondition, recogCtr, data_name);
-                  
+        
+                  trial_colors = intermix_colorsInDegrees{t};
+                  intermix_data.recog(recogCtr,10:12) =  trial_colors; % saves the three squares colors (in degrees)
+
                   % increment the recogCtr
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
 
-                  trial_colors = intermix_colorsInDegrees{t};
-                  intermix_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end % end of trial condition
 
-              if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
-
-                breakBetween(window);
-
-              end
+              % if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
+              % 
+              %   breakBetween(window);
+              % 
+              % end
         
             end % end of trial loop
 
             % end of intermixed condition
 
         else % start of blocked condition
+            blockCtr = 0;
 
             % disp('Test = this is the blocked condition!') % check
 
             for t = 1:nTrialsTotal % start trial loop
+                theCloser;
+
+
+              if(mod(t-1,trialsPerBlock) == 0)
+                blockCtr = blockCtr + 1;
+
+                blockType = blockList(blockCtr);
+
+                if blockType == 5 % recall
+                    recallScreen(window);
+                else % show recog screen
+                    recogScreen(window);
+                end
+              end
         
               % get the type for this trial (recall = 1, recog match = 2, recog mismatch = 3)
               trialType = blockedTrialList(t, 1);
@@ -433,7 +460,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -486,7 +513,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -546,34 +573,35 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
                   while any(buttons)
                     [x,y,buttons] = GetMouse(window.onScreen);
                   end
-        
+                  
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recall(recallCtr,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
+
                   % increment the recallCtr
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
 
-                  trial_colors = block_colorsInDegrees{t};
-                  block_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
                   block_data = recogProbe(block_data, prefs, trialType, t, window, block_colorsInDegrees, colorsToDisplay, itemToTest_block, rects, mouseCondition, recogCtr, data_name);
                   
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recog(recogCtr,10:12) =  trial_colors; % saves the three squares colors (in degrees)
+
                   % increment the recogCtr
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
-
-                  trial_colors = block_colorsInDegrees{t};
-                  block_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end
 
-              if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
-
-                breakBetween(window);
-
-              end
+              % if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
+              % 
+              %   breakBetween(window);
+              % 
+              % end
         
             end % end of trial loop
             
@@ -650,40 +678,76 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
     stdError_recallIntermixed = std(abs(recallIntermixData(:,4)));
     stdError_recallBlocked = std(abs(recallBlockData(:,4)));
 
+
+    
+    % get number of hits for intermixed
+    intermixed_hits = height(recogIntermixData(recogIntermixData(:,2) == 2 & recogIntermixData(:,3) == 1));
+    intermixed_hit_rate = intermixed_hits/height(recogIntermixData(recogIntermixData(:,2) == 2));
+
+    % get number of FAs for intermixed
+    intermixed_fas = height(recogIntermixData(recogIntermixData(:,2) == 3 & recogIntermixData(:,3) == 0));
+    intermixed_fa_rate = intermixed_fas/height(recogIntermixData(recogIntermixData(:,2) == 3));
+
+    % get the K for intermixed
+    K_intermixed = 3*(intermixed_hit_rate - intermixed_fa_rate);
+
+
+    % get number of hits for blocked
+    blocked_hits = height(recogBlockData(recogBlockData(:,2) == 2 & recogBlockData(:,3) == 1));
+    blocked_hit_rate = blocked_hits/height(recogBlockData(recogBlockData(:,2) == 2));
+
+    % get number of FAs for blocked
+    blocked_fas = height(recogBlockData(recogBlockData(:,2) == 3 & recogBlockData(:,3) == 0));
+    blocked_fa_rate = blocked_fas/height(recogBlockData(recogBlockData(:,2) == 3));
+
+    % get the K for blocked
+    K_blocked = 3*(blocked_hit_rate - blocked_fa_rate);
+
+
+
     % store this info in final data
-    final_data(1,1) = "Recog Correct RT (all - block)"; final_data(1,2) = corAll__recogBlockRT;
-    final_data(2,1) = "Recog Acc (match - block)"; final_data(2,2) = match_recogBlockAcc;
-    final_data(3,1) = "Recog Acc (mismatch - block)"; final_data(3,2) = mismatch_recogBlockAcc;
-    final_data(4,1) = "Recog Acc (all - block)"; final_data(4,2) = all_recogBlockAcc;
-
-    final_data(5,1) = "Recog RT (match - block"; final_data(5,2) = match_recogBlockRT;
-    final_data(6,1) = "Recog RT (mismatch - block)"; final_data(6,2) = mismatch_recogBlockRT;
-
-    final_data(7,1) = "Recog RT (all - block)"; final_data(7,2) = all_recogBlockRT; % not sure what this is...
-    final_data(8,1) = "Recog Correct RT (match - block)"; final_data(8,2) = corMatch_recogBlockRT;
-    final_data(9,1) = "Recog Correct RT (mismatch - block)"; final_data(9,2) = corMismatch_recogBlockRT;
-
+    %block - recog
+    final_data(1,1) = "Recog Acc (match - block)"; final_data(1,2) = match_recogBlockAcc;
+    final_data(2,1) = "Recog Acc (mismatch - block)"; final_data(2,2) = mismatch_recogBlockAcc;
+    final_data(3,1) = "Recog Acc (all - block)"; final_data(3,2) = all_recogBlockAcc;
+    final_data(4,1) = "Recog Correct RT (match - block)"; final_data(4,2) = corMatch_recogBlockRT;
+    final_data(5,1) = "Recog Correct RT (mismatch - block)"; final_data(5,2) = corMismatch_recogBlockRT;
+    final_data(6,1) = "Recog Correct RT (all - block)"; final_data(6,2) = corAll__recogBlockRT;
+    final_data(7,1) = "Recog RT (match - block"; final_data(7,2) = match_recogBlockRT;
+    final_data(8,1) = "Recog RT (mismatch - block)"; final_data(8,2) = mismatch_recogBlockRT;
+    final_data(9,1) = "Recog RT (all - block)"; final_data(9,2) = all_recogBlockRT; 
+    %block - recall
     final_data(10,1) = "Recall Error - Average (block)"; final_data(10,2) = aveError_recallBlocked;
     final_data(11,1) = "Recall Error - Standard Deviation (block)"; final_data(11,2) = stdError_recallBlocked;
 
-    final_data(12,1) = "Recog Correct RT (all - intermixed)"; final_data(12,2) = corAll__recogIntermixRT;
-    final_data(13,1) = "Recog Acc (intermixed - intermixed)"; final_data(13,2) = match_recogIntermixAcc;
-    final_data(14,1) = "Recog Acc (mismatch - intermixed)"; final_data(14,2) = mismatch_recogIntermixAcc;
-    final_data(15,1) = "Recog Acc (all - intermixed)"; final_data(15,2) = all_recogIntermixAcc;
-
-    final_data(16,1) = "Recog RT (match - intermixed"; final_data(16,2) = match_recogIntermixRT;
-    final_data(17,1) = "Recog RT (mismatch - intermixed)"; final_data(17,2) = mismatch_recogIntermixRT;
-
-    final_data(18,1) = "Recog RT (all - intermixed)"; final_data(18,2) = all_recogIntermixRT; % not sure what this is...
-    final_data(19,1) = "Recog Correct RT (match - intermixed)"; final_data(19,2) = corMatch_recogIntermixRT;
-
-    final_data(20,1) = "Recog Correct RT (mismatch - intermixed)"; final_data(20,2) = corMismatch_recogIntermixRT;
+    %intermix - recog
+    final_data(12,1) = "Recog Acc (match - intermixed)"; final_data(12,2) = match_recogIntermixAcc;
+    final_data(13,1) = "Recog Acc (mismatch - intermixed)"; final_data(13,2) = mismatch_recogIntermixAcc;
+    final_data(14,1) = "Recog Acc (all - intermixed)"; final_data(14,2) = all_recogIntermixAcc;
+    final_data(15,1) = "Recog Correct RT (match - intermixed)"; final_data(15,2) = corMatch_recogIntermixRT;
+    final_data(16,1) = "Recog Correct RT (mismatch - intermixed)"; final_data(16,2) = corMismatch_recogIntermixRT;
+    final_data(17,1) = "Recog Correct RT (all - intermixed)"; final_data(17,2) = corAll__recogIntermixRT;
+    final_data(18,1) = "Recog RT (match - intermixed"; final_data(18,2) = match_recogIntermixRT;
+    final_data(19,1) = "Recog RT (mismatch - intermixed)"; final_data(19,2) = mismatch_recogIntermixRT;
+    final_data(20,1) = "Recog RT (all - intermixed)"; final_data(20,2) = all_recogIntermixRT; 
+    %intermix - recall
     final_data(21,1) = "Recall Error - Average (intermixed) "; final_data(21,2) = aveError_recallIntermixed;
     final_data(22,1) = "Recall Error - Standard Deviation (intermixed)"; final_data(22,2) = stdError_recallIntermixed;
 
+    %block - K calculations
+    final_data(23,1) = "Recog hit rate (block)"; final_data(23,2) = blocked_hit_rate;
+    final_data(24,1) = "Recog false alarm rate (block)"; final_data(24,2) = blocked_fa_rate;
+    final_data(25,1) = "Recog K (block)"; final_data(25,2) = K_blocked;
+
+    %intermix - K calculations
+    final_data(26,1) = "Recog hit rate (intermix)"; final_data(26,2) = intermixed_hit_rate;
+    final_data(27,1) = "Recog false alarm rate (intermix)"; final_data(27,2) = intermixed_fa_rate;
+    final_data(28,1) = "Recog K (intermix)"; final_data(28,2) = K_intermixed;
+
+    excel_data = final_data'; %flip easier to copy into excel
 
 
-    save(ana_name,'final_data','corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
+    save(ana_name,'excel_data','final_data','corAll__recogBlockRT','match_recogIntermixAcc','mismatch_recogIntermixAcc','all_recogIntermixAcc','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogIntermixRT','mismatch_recogIntermixRT','all_recogIntermixRT','corMatch_recogIntermixRT','corMismatch_recogIntermixRT','corAll__recogIntermixRT','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','corAll__recogIntermixRT','aveError_recallIntermixed','aveError_recallBlocked','stdError_recallIntermixed','stdError_recallBlocked');
     save(output_name)
 
 
@@ -728,6 +792,9 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
         % each column represents a color in colorsToDisplay 
         % ' operator accounts for the difference
 
+        trialColorInDegrees = colorsInDegrees{1,t}; % select the color index/degree for the square that will be tested
+        targetColorInDegrees = trialColorInDegrees(itemToTest(t));
+
         % disp(colorsOfTest);
 
         % make the other two squares blend in w/ the background
@@ -739,17 +806,18 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
 
         colorsOfTest = colorsToDisplay';
         % disp(colorsOfTest)
-
+        
         trialColorInDegrees = colorsInDegrees{1,t}; % select the color index/degree for the square that will be tested
         targetColorInDegrees = trialColorInDegrees(itemToTest(t));
         % disp(targetColorInDegrees)
 
         % offset the color by 180 degrees
-        diffColorInDegrees = targetColorInDegrees - 180; % subtracting vs. adding 180 makes no difference
+        diffColorInDegrees = targetColorInDegrees - 180;
         % disp(diffColorInDegrees)
-
         if diffColorInDegrees < 0 % color indices/degree calues cannot be negative, correct by one full rotation if it is
             diffColorInDegrees = diffColorInDegrees + 360;
+        elseif diffColorInDegrees == 0 % we cannot have 180 degrees - 180 degrees because color wheel is 1:360
+            diffColorInDegrees = 360;
         end
 
         diffColor = prefs.originalcolorwheel(diffColorInDegrees, :); % 
@@ -862,7 +930,7 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
     drawColorWheel(window, prefs, stim, recallCtr);
     
     % set the mouse to the center of the screen
-    SetMouse(window.centerX,window.centerY,window.onScreen); % added by LK, better...  
+    SetMouse(window.centerX*2,window.centerY*2,window.onScreen); % added by LK, better...  
     % [badX,badY,buttons] = GetMouse(window.onScreen); % this was here originally, I commented out - LK
     ShowCursor('Arrow');
     rtStart = GetSecs;
@@ -978,6 +1046,12 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
     data.recall(recallCtr, 2) = data.isValidResponse(recallCtr); % was this participant's response valid?
     data.recall(recallCtr, 3) = data.mouseOnWheel(recallCtr); % did the participant end on the wheel?
     % color offset & RT saved earlier because only accurately calculated if the response is valid
+    data.recall(recallCtr,9) = stim.color(recallCtr); % store the probe color in degrees
+    data.recall(recallCtr,10) = stim.reportedColorDeg(recallCtr); % what color did they click on in degrees?
+
+    if(data.recall(recallCtr, 4) == 500)
+        data.recall(recallCtr,10) = 500; % what color did they click on in degrees? - junk value if invalid trial
+    end
 
     % save the data, the stim, and the preferences
     save(data_name, 'data','stim','prefs');
@@ -1096,16 +1170,18 @@ function instruct(window, mouseCondition)
     
     % depending on how the mouse is for this participant, give different instructions
     if mouseCondition == 1 % left is match, right is mismatch judgement
-        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the same (left click) or different (right click) as before.', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the SAME (LEFT click)', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'or DIFFERENT (RIGHT click) as before.', 'center', window.centerY + 100);
     else % right is match, left is mismatch judgement
-        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the same (right click) or different (left click) as before.', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the SAME (RIGHT click)', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'or DIFFERENT (LEFT click) as before.', 'center', window.centerY + 100);
     end
 
 
 
-    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 100);
+    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 150);
     
-    DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 200);
+    DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 250);
     
     Screen('Flip', window.onScreen); % show the instructions
     
@@ -1118,19 +1194,86 @@ function instruct(window, mouseCondition)
 
         keyCode(spacebar);
     end
+    WaitSecs(1);
 
 end
+% 
+% function breakBetween(window)
+%     spacebar = KbName('space');
+% 
+%     Screen('FillRect',window.onScreen,window.bcolor);
+%     Screen('TextSize', window.onScreen, window.fontsize);
+%     Screen('Textcolor',window.onScreen, window.white);
+% 
+%     DrawFormattedText(window.onScreen,'Please take a break. Press space to continue the task.', 'center',window.centerY);
+% 
+%     Screen('Flip', window.onScreen); % show the text
+% 
+%     [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+%     while ~keyCode(spacebar)
+%         [~,~,keyCode] = KbCheck();
+%         keyCode(spacebar);
+%     end
+% 
+% end
 
-function breakBetween(window)
+function recogScreen(window)
     spacebar = KbName('space');
 
     Screen('FillRect',window.onScreen,window.bcolor);
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen,'Please take a break. Press space to continue the task.', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'MATCHING BLOCK', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Press space to continue when you are ready.', 'center',window.centerY+50);
+
     
     Screen('Flip', window.onScreen); % show the text
+    % WaitSecs(1); % temp
+    
+    [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+    while ~keyCode(spacebar)
+        [~,~,keyCode] = KbCheck();
+        keyCode(spacebar);
+    end
+
+end
+
+function recallScreen(window)
+    spacebar = KbName('space');
+
+    Screen('FillRect',window.onScreen,window.bcolor);
+    Screen('TextSize', window.onScreen, window.fontsize);
+    Screen('Textcolor',window.onScreen, window.white);
+    
+    DrawFormattedText(window.onScreen,'COLOR WHEEL BLOCK', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Press space to continue when you are ready.', 'center',window.centerY+50);
+
+    
+    Screen('Flip', window.onScreen); % show the text
+    % WaitSecs(1); % temp
+    
+    [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+    while ~keyCode(spacebar)
+        [~,~,keyCode] = KbCheck();
+        keyCode(spacebar);
+    end
+
+end
+
+function intermixScreen(window)
+    spacebar = KbName('space');
+
+    Screen('FillRect',window.onScreen,window.bcolor);
+    Screen('TextSize', window.onScreen, window.fontsize);
+    Screen('Textcolor',window.onScreen, window.white);
+    
+    DrawFormattedText(window.onScreen,'COLOR WHEEL AND MATCHING', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Press space to continue when you are ready.', 'center',window.centerY+50);
+
+    
+    Screen('Flip', window.onScreen); % show the text
+    % WaitSecs(1); % temp
     
     [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
     while ~keyCode(spacebar)
@@ -1156,6 +1299,29 @@ function endScreen(window)
         [~,~,keyCode] = KbCheck();
         keyCode(spacebar);
     end
+
+end
+
+function conditionScreen(window)
+    spacebar = KbName('space');
+
+    Screen('FillRect',window.onScreen,window.bcolor);
+    Screen('TextSize', window.onScreen, window.fontsize);
+    Screen('Textcolor',window.onScreen, window.white);
+    
+    DrawFormattedText(window.onScreen,'Please ring the bell.', 'center',window.centerY - 50);
+    DrawFormattedText(window.onScreen,'Halfway point.', 'center',window.centerY + 50);
+
+    
+    Screen('Flip', window.onScreen); % show the text
+    
+    [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+    while ~keyCode(spacebar)
+        [~,~,keyCode] = KbCheck();
+        keyCode(spacebar);
+    end
+
+    WaitSecs(1); % another screen will be after this, prevent just clicking through that one
 
 end
 

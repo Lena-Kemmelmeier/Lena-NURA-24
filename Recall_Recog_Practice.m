@@ -16,10 +16,10 @@ prompt = {'Enter participant number:','Enter mouse settings:'};
 dlg_title = 'New Participant';
 num_lines = 1;
 answer = inputdlg(prompt,dlg_title,num_lines); % presents box to enter data into
-
+    
 if isempty(answer{1,1} | answer{2,1})
     error(noResponseGUI); % throw an error
-elseif ((answer{2,1} ~= '0' && answer{2,1} ~= '1')) % fix this! incorrect logical statement
+elseif ((answer{2,1} ~= '0' && answer{2,1} ~= '1')) 
     error(incorrectGUI); % throw an error
 end 
 
@@ -71,7 +71,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
     
     % Settings for block
     numBlocks = 2;
-    trialsPerBlock = 20; % change to 25 once we're done!
+    trialsPerBlock = 20;
 
     % Determine the order of the recognition and recall blocks
     recallBlocks = zeros(numBlocks/2) + 5; % 5 denotes recall block
@@ -188,10 +188,28 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
         % the beginning of both the intermixed and condition block
         recallCtr = 1; 
         recogCtr = 1;
+        blockCtr = 0;
 
 
             for t = 1:nTrialsTotal % start trial loop
               theCloser;
+
+              
+              % add in a screen before each block (here, first trial or
+              % halfway through)
+              if (mod(t-1,trialsPerBlock) == 0)
+                  blockCtr = blockCtr + 1; % fix this!
+                  blockType = blockList(blockCtr); % fix this!
+
+                  if blockType == 5 % recall
+                      recallScreen(window);    
+                  else % recongition
+                      recogScreen(window);
+                  end
+
+              end
+
+
               % get the type for this trial (recall = 1, recog match = 2, recog mismatch = 3)
               trialType = blockedTrialList(t, 1);
         
@@ -234,7 +252,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -287,7 +305,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 90
+                            if min_distance >= 50
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -348,36 +366,39 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                     [x,y,buttons] = GetMouse(window.onScreen);
                   end
         
-                  % increment the recallCtr
+
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recall(recallCtr,6:8) =  trial_colors; % saves the three sqaures colors (in degrees) 
+
+                 % increment the recallCtr
                   if recallCtr < length(recallTrials)
                     recallCtr = recallCtr + 1;
                   end
-
-                  trial_colors = block_colorsInDegrees{t};
-                  block_data.recall(t,6:8) =  trial_colors; % saves the three sqaures colors (in degrees)
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
                   block_data = recogProbe(block_data, prefs, trialType, t, window, block_colorsInDegrees, colorsToDisplay, itemToTest_block, rects, mouseCondition, recogCtr, data_name);
                   
+
+                  trial_colors = block_colorsInDegrees{t};
+                  block_data.recog(recogCtr,10:12) =  trial_colors; % saves the three squares colors (in degrees)  
+
                   % increment the recogCtr
                   if recogCtr < length(recogTrials)
                     recogCtr = recogCtr + 1;
                   end
                   
-                  trial_colors = block_colorsInDegrees{t};
-                  block_data.recog(t,10:12) =  trial_colors; % saves the three squares colors (in degrees)
         
               end
                 
               save(output_name);
 
-              if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
-
-                breakBetween(window);
-
-              end
-        
+              % if (mod(t,trialsPerBlock) == 0 &&  t < nTrialsTotal) % we are at the end of a block, but it's not the last block
+              % 
+              %   breakBetween(window);
+              % 
+              % end
+              % 
             end % end of trial loop
             
    
@@ -426,32 +447,29 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
     corMismatch_recogBlockRT = median(recogBlockData(recogBlockData(:,2)==3 & recogBlockData(:,3)==1,4));
     corAll__recogBlockRT = median(recogBlockData(recogBlockData(:,3)==1,4));
 
-
     % recall trials - get average and standard deviation of error
 
     aveError_recallBlocked = mean(abs(recallBlockData(:,4)));
     stdError_recallBlocked = std(abs(recallBlockData(:,4)));
 
     % store this info in final data
-    final_data(1,1) = "Recog Correct RT (all - block)"; final_data(1,2) = corAll__recogBlockRT;
-    final_data(2,1) = "Recog Acc (match - block)"; final_data(2,2) = match_recogBlockAcc;
-    final_data(3,1) = "Recog Acc (mismatch - block)"; final_data(3,2) = mismatch_recogBlockAcc;
-    final_data(4,1) = "Recog Acc (all - block)"; final_data(4,2) = all_recogBlockAcc;
-
-    final_data(5,1) = "Recog RT (match - block"; final_data(5,2) = match_recogBlockRT;
-    final_data(6,1) = "Recog RT (mismatch - block)"; final_data(6,2) = mismatch_recogBlockRT;
-
-    final_data(7,1) = "Recog RT (all - block)"; final_data(7,2) = all_recogBlockRT; % not sure what this is...
-    final_data(8,1) = "Recog Correct RT (match - block)"; final_data(8,2) = corMatch_recogBlockRT;
-
-    final_data(9,1) = "Recog Correct RT (mismatch - block)"; final_data(9,2) = corMismatch_recogBlockRT;
+    final_data(1,1) = "Recog Acc (match - block)"; final_data(1,2) = match_recogBlockAcc;
+    final_data(2,1) = "Recog Acc (mismatch - block)"; final_data(2,2) = mismatch_recogBlockAcc;
+    final_data(3,1) = "Recog Acc (all - block)"; final_data(3,2) = all_recogBlockAcc;
+    final_data(4,1) = "Recog Correct RT (match - block)"; final_data(4,2) = corMatch_recogBlockRT;
+    final_data(5,1) = "Recog Correct RT (mismatch - block)"; final_data(5,2) = corMismatch_recogBlockRT;
+    final_data(6,1) = "Recog Correct RT (all - block)"; final_data(6,2) = corAll__recogBlockRT;
+    final_data(7,1) = "Recog RT (match - block"; final_data(7,2) = match_recogBlockRT;
+    final_data(8,1) = "Recog RT (mismatch - block)"; final_data(8,2) = mismatch_recogBlockRT;
+    final_data(9,1) = "Recog RT (all - block)"; final_data(9,2) = all_recogBlockRT; 
     final_data(10,1) = "Recall Error - Average"; final_data(10,2) = aveError_recallBlocked;
     final_data(11,1) = "Recall Error - Standard Deviation"; final_data(11,2) = stdError_recallBlocked;
 
+    excel_data = final_data';
 
-    save(ana_name,'final_data','corAll__recogBlockRT','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','aveError_recallBlocked','stdError_recallBlocked');
+    save(ana_name,'excel_data','final_data','corAll__recogBlockRT','match_recogBlockAcc','mismatch_recogBlockAcc','all_recogBlockAcc','match_recogBlockRT','mismatch_recogBlockRT','all_recogBlockRT','corMatch_recogBlockRT','corMismatch_recogBlockRT','aveError_recallBlocked','stdError_recallBlocked');
 
-    if((all_recogBlockAcc < 0.5) || aveError_recallBlocked > 90)
+    if((all_recogBlockAcc <= 0.5) || aveError_recallBlocked >= 90 || isnan(aveError_recallBlocked))
         disp('Practice data did not save!')
     else
         disp('Practice data saved')
@@ -524,6 +542,8 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
 
         if diffColorInDegrees < 0 % color indices/degree calues cannot be negative, correct by one full rotation if it is
             diffColorInDegrees = diffColorInDegrees + 360;
+        elseif diffColorInDegrees == 0 % we cannot have 180 degrees - 180 degrees because color wheel is 1:360
+            diffColorInDegrees = 360;
         end
 
         diffColor = prefs.originalcolorwheel(diffColorInDegrees, :); % 
@@ -636,7 +656,7 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
     drawColorWheel(window, prefs, stim, recallCtr);
     
     % set the mouse to the center of the screen
-    SetMouse(window.centerX,window.centerY,window.onScreen); % added by LK, better...  
+    SetMouse(window.centerX*2,window.centerY*2,window.onScreen); % added by LK, better...
     % [badX,badY,buttons] = GetMouse(window.onScreen); % this was here originally, I commented out - LK
     ShowCursor('Arrow');
     rtStart = GetSecs;
@@ -752,7 +772,12 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
     data.recall(recallCtr, 2) = data.isValidResponse(recallCtr); % was this participant's response valid? 0 or 1
     data.recall(recallCtr, 3) = data.mouseOnWheel(recallCtr); % did the participant end on the wheel? 0 or 1
     % color offset & RT saved earlier because only accurately calculated if the response is valid
+    data.recall(recallCtr,9) = stim.color(recallCtr); % store the probe color in degrees
+    data.recall(recallCtr,10) = stim.reportedColorDeg(recallCtr); % what color did they click on in degrees?
 
+    if(data.recall(recallCtr, 4) == 500)
+        data.recall(recallCtr,10) = 500; % what color did they click on in degrees? - junk value if invalid trial
+    end
     
 
     % save the data, the stim, and the preferences
@@ -864,7 +889,7 @@ function instruct(window, mouseCondition)
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen, 'PRACTICE - Color Recall & Recognition', 'center', window.centerY - 200);
+    DrawFormattedText(window.onScreen, 'PRACTICE', 'center', window.centerY - 200);
     
     DrawFormattedText(window.onScreen, 'At the start of each trial, you will be shown three squares. Remember their colors.', 'center', window.centerY - 100);
     DrawFormattedText(window.onScreen, 'After a delay, you will be shown colored squares again, or a color wheel.', 'center', window.centerY - 50);
@@ -872,16 +897,20 @@ function instruct(window, mouseCondition)
     
     % depending on how the mouse is for this participant, give different instructions
     if mouseCondition == 1 % left is match, right is mismatch judgement
-        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the same (left click) or different (right click) as before.', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the SAME (LEFT click)', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'or DIFFERENT (RIGHT click) as before.', 'center', window.centerY + 100);
+
     else % right is match, left is mismatch judgement
-        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the same (right click) or different (left click) as before.', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'If you are shown colored squares again, indicate whether they are the SAME (RIGHT click)', 'center', window.centerY + 50);
+        DrawFormattedText(window.onScreen, 'or DIFFERENT (LEFT click) as before.', 'center', window.centerY + 100);
+
     end
 
 
 
-    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 100);
+    DrawFormattedText(window.onScreen, 'If you are shown a color wheel, select the color of the lightest square.', 'center', window.centerY + 150);
     
-    DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 200);
+    DrawFormattedText(window.onScreen, 'Press space to begin.', 'center', window.centerY + 250);
     
     Screen('Flip', window.onScreen); % show the instructions
     
@@ -895,21 +924,68 @@ function instruct(window, mouseCondition)
         keyCode(spacebar);
     end
 
-    oldResolution = Screen('Resolution', window.onScreen);
-    disp(oldResolution);
+    % oldResolution = Screen('Resolution', window.onScreen);
+    % disp(oldResolution);
+
+    WaitSecs(1);
+    
 
 end
+% 
+% function breakBetween(window)
+%     spacebar = KbName('space');
+% 
+%     Screen('FillRect',window.onScreen,window.bcolor);
+%     Screen('TextSize', window.onScreen, window.fontsize);
+%     Screen('Textcolor',window.onScreen, window.white);
+% 
+%     DrawFormattedText(window.onScreen,'Please take a break. Press space to continue the task.', 'center',window.centerY);
+% 
+%     Screen('Flip', window.onScreen); % show the text
+% 
+%     [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+%     while ~keyCode(spacebar)
+%         [~,~,keyCode] = KbCheck();
+%         keyCode(spacebar);
+%     end
+% 
+% end
 
-function breakBetween(window)
+function recogScreen(window)
     spacebar = KbName('space');
 
     Screen('FillRect',window.onScreen,window.bcolor);
     Screen('TextSize', window.onScreen, window.fontsize);
     Screen('Textcolor',window.onScreen, window.white);
     
-    DrawFormattedText(window.onScreen,'Please take a break. Press space to continue the task.', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'MATCHING BLOCK', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Press space to continue when you are ready.', 'center',window.centerY+50);
+
     
     Screen('Flip', window.onScreen); % show the text
+    % WaitSecs(1); % temp
+    
+    [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
+    while ~keyCode(spacebar)
+        [~,~,keyCode] = KbCheck();
+        keyCode(spacebar);
+    end
+
+end
+
+function recallScreen(window)
+    spacebar = KbName('space');
+
+    Screen('FillRect',window.onScreen,window.bcolor);
+    Screen('TextSize', window.onScreen, window.fontsize);
+    Screen('Textcolor',window.onScreen, window.white);
+    
+    DrawFormattedText(window.onScreen,'COLOR WHEEL BLOCK', 'center',window.centerY);
+    DrawFormattedText(window.onScreen,'Press space to continue when you are ready.', 'center',window.centerY+50);
+
+    
+    Screen('Flip', window.onScreen); % show the text
+    % WaitSecs(1); % temp
     
     [~,~, keyCode] = KbCheck(); % wait for spacebar to continue
     while ~keyCode(spacebar)
