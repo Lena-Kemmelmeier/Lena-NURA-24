@@ -749,11 +749,11 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecog_ana',root,ID);
 
 
     % Look at performance over number of trials (groupings of 25)
-    performance_time.recallBlockData = block_data.recall;
-    performance_time.recogBlockData = block_data.recog;
-
-    performance_time.recallMixData = intermix_data.recall;
-    performance_time.recogMixData = intermix_data.recog;
+    % performance_time.recallBlockData = block_data.recall;
+    % performance_time.recogBlockData = block_data.recog;
+    % 
+    % performance_time.recallMixData = intermix_data.recall;
+    % performance_time.recogMixData = intermix_data.recog;
 
     blockNum = 0;
     startingTrial = 1;
