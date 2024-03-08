@@ -239,7 +239,6 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
                     
                     % The first number is the number that will be tested (generated earlier)
                     random_numbers = block_stim.color(recallCtr);
@@ -253,7 +252,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 30 % was 50 for first 10
+                            if min_distance >= 30
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
