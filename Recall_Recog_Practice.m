@@ -5,6 +5,7 @@ clear;
 KbName('UnifyKeyNames');
 
 root = '/Users/mblab/Desktop/Lena-NURA-24/';
+% root = '/Users/lena/Desktop/Lena-NURA-24/'; % lena's PC
 addpath(root); % just to be sure...
 addpath(root, char(root + "/Raw"), char(root + "/Data"), char(root + "/Analyzed"))
 
@@ -252,7 +253,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                             
                             % Check if the new number satisfies the minimum distance condition
                             min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 50
+                            if min_distance >= 30 % was 50 for first 10
                                 % If satisfied, add the new number to the array
                                 random_numbers(i) = new_number;
                                 break;
@@ -284,41 +285,66 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
                     % disp(colorsToDisplay(:,:)); % check
 
 
-              else % this is a recognition trial (either match or mismatxh)
+              else % this is a recognition trial (either match or mismatch)
                 
                   % Pick three random colors (values are degrees/indices), this INCLUDES the square that WILL be tested          
-                  % each color must be at least 15 degrees apart from one another (don't want colors to look exactly the same!)
+                  % each color must be at least 30 degrees apart from one another (don't want colors to look exactly the same!)
         
                     % num_numbers = 3; % Number of random numbers
                     min_value = 1; % Minimum value
                     max_value = 360; % Maximum value
-                    % min_distance = 90; % Minimum distance between numbers (22.5 degrees rounded up)
 
                     % Generate the first random number
                     random_numbers = randi([min_value, max_value]);
+                    first_num = random_numbers;
+                    all_nums = random_numbers;
+
+
+                    % offset the color by 180 degrees - this will be the probe for mismatch trials
+                    % we have this for match trials too, but will goes unused
+    
+                    diffColorInDegrees = first_num - 180; % subtracting vs. adding 180 makes no difference
+            
+                    if diffColorInDegrees < 0 % color indices/degree calues cannot be negative, correct by one full rotation if it is
+                        diffColorInDegrees = diffColorInDegrees + 360;
+                    elseif diffColorInDegrees == 0 % we cannot have 180 degrees - 180 degrees because color wheel is 1:360
+                        diffColorInDegrees = 360;
+                    end
+
+                    all_nums(2) = diffColorInDegrees;
 
                     % Generate the remaining random numbers
-                    for i = 2:prefs.nItems
+                    for i = 3:(prefs.nItems + 1)
                         while true
                             % Generate a new random number
                             new_number = randi([min_value, max_value]);
                             
                             % Check if the new number satisfies the minimum distance condition
-                            min_distance = min(abs(random_numbers(1:i-1) - new_number), 360 - abs(random_numbers(1:i-1) - new_number));
-                            if min_distance >= 50
+                            min_distance = min(abs(all_nums(1:i-1) - new_number), 360 - abs(all_nums(1:i-1) - new_number));
+                            if min_distance >= 30
                                 % If satisfied, add the new number to the array
-                                random_numbers(i) = new_number;
+                                all_nums(i) = new_number;
+                                random_numbers(i-1) = new_number;
                                 break;
 
                             end
                         end
                     end
 
+                  if itemToTest_block(t) == 2
+                      % the color to be tested should swap places with the color originially in the second index
+                      random_numbers([2 1]) = random_numbers([1 2]);
+        
+                  elseif itemToTest_block(t) == 3
+                      % the color to be tested should swap places with the color originially in the first index
+                      random_numbers([3 1]) = random_numbers([1 3]);
+              
+                  end
 
-                    block_colorsInDegrees{t} = random_numbers;
+
+                   block_colorsInDegrees{t} = random_numbers;
+                   block_mismatchProbeDegrees{t} = diffColorInDegrees;
             
-                    % Display the array of random numbers
-                    % disp(random_numbers);
         
         
                   colorsToDisplay = zeros(3,3);
@@ -377,7 +403,7 @@ ana_name = sprintf('%s/Analyzed/%s_RecallRecogPractice_ana',root,ID);
         
               else % probe this trial with recognition (trialType is 2 or 3)
         
-                  block_data = recogProbe(block_data, prefs, trialType, t, window, block_colorsInDegrees, colorsToDisplay, itemToTest_block, rects, mouseCondition, recogCtr, data_name);
+                  block_data = recogProbe(block_data, prefs, trialType, t, window, block_colorsInDegrees, block_mismatchProbeDegrees, colorsToDisplay, itemToTest_block, rects, mouseCondition, recogCtr, data_name);
                   
 
                   trial_colors = block_colorsInDegrees{t};
@@ -509,7 +535,7 @@ function drawColorWheel(window, prefs, stim, t)
 
 end
 
-function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, colorsToDisplay, itemToTest, rects, mouseCondition, recogCtr, data_name)
+function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, mismatchProbe_degrees, colorsToDisplay, itemToTest, rects, mouseCondition, recogCtr, data_name)
 
     if trialType == 2 % match trial
 
@@ -536,17 +562,7 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
         trialColorInDegrees = colorsInDegrees{1,t}; % select the color index/degree for the square that will be tested
         targetColorInDegrees = trialColorInDegrees(itemToTest(t));
 
-        % offset the color by 180 degrees
-        diffColorInDegrees = targetColorInDegrees - 180; % subtracting vs. adding 180 makes no difference
-        % disp(diffColorInDegrees)
-
-        if diffColorInDegrees < 0 % color indices/degree calues cannot be negative, correct by one full rotation if it is
-            diffColorInDegrees = diffColorInDegrees + 360;
-        elseif diffColorInDegrees == 0 % we cannot have 180 degrees - 180 degrees because color wheel is 1:360
-            diffColorInDegrees = 360;
-        end
-
-        diffColor = prefs.originalcolorwheel(diffColorInDegrees, :); % 
+        diffColor = prefs.originalcolorwheel(mismatchProbe_degrees{t}, :);
 
 
         % store this new color
@@ -630,7 +646,8 @@ function data = recogProbe(data, prefs, trialType, t, window, colorsInDegrees, c
     data.recog(recogCtr, 13) = targetColorInDegrees; % probe color
 
     if trialType == 3
-        data.recog(recogCtr, 14) = diffColorInDegrees; % if it is a mismatch trial, this is actually the probe color
+        data.recog(recogCtr, 14) = mismatchProbe_degrees{t}; % if it is a mismatch trial, this is actually the probe color
+        disp('here2');
     end
 
     % save the data, preferences, stim info
@@ -656,7 +673,8 @@ function  [data, stim, prefs] = recallProbe(data, prefs, stim, recallCtr, t, win
     drawColorWheel(window, prefs, stim, recallCtr);
     
     % set the mouse to the center of the screen
-    SetMouse(window.centerX*2,window.centerY*2,window.onScreen); % added by LK, better...
+    % SetMouse(window.centerX*2,window.centerY*2,window.onScreen); % switch back to this!
+    % SetMouse(window.centerX,window.centerY,window.onScreen); % for Lena's Mac
     % [badX,badY,buttons] = GetMouse(window.onScreen); % this was here originally, I commented out - LK
     ShowCursor('Arrow');
     rtStart = GetSecs;
@@ -1182,6 +1200,6 @@ function [] = theCloser()
     [~, ~, keyCode] = KbCheck;
     if keyCode(KbName('Pause'))
         Screen('CloseAll');
-        stop = here + please;
+        error('Closing manually.');
     end
 end
