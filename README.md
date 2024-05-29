@@ -1,7 +1,7 @@
 # Lena-NURA-24
 
 Directories:
-- Behavioral Data By Participant: contains Raw Data, Data, and Analyzed Data for the recognition/recall task, separated by participant and practice/main task version
+- Behavioral Data By Participant (zipped): contains Raw Data, Data, and Analyzed Data for the recognition/recall task, separated by participant and practice/main task version
 - Data Analysis Scripts + Excel: contains Excel workbook of compiled data for all participants, key for reading data and analyzed mat files (and mouse condition), Python script for generating figures in deliverable and WPD (includes Z-score scripts, unfinished), Matlab script for putting analyzed behavioral/demographics data in excel/checking whether each participant can be kept, and SPSS outputs.
 - Friday Update PPTs: contains weekly data update PPTs
 - Lab Journal: contains PDF of Notion files, along with another directory of embedded attachments found w/i the Notion pages
