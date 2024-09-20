@@ -14,4 +14,3 @@ Files:
 - Deliverable (write-up) PDF
 - WPD Poster (PDF)
 - Proposal (write-up to secure NURA funding) PDF
-* References included on both deliverable and proposal
