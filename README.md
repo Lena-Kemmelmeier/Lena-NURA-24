@@ -15,8 +15,3 @@ Files:
 - WPD Poster (PDF)
 - Proposal (write-up to secure NURA funding) PDF
 * References included on both deliverable and proposal
- 
-Binder: colorful, lime green labels
-
-- Lena Kemmelmeier
-Jan - May 30 2024 NURA
